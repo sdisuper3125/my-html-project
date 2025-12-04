@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -20,7 +20,7 @@
             font-family: 'Merriweather', serif;
         }
 
-        /* 1. FIXED: Reliable Hero Background Image (Deep Blue Ocean) */
+        /* 1. Hero Background */
         .hero-bg {
             background: linear-gradient(rgba(0, 32, 63, 0.9), rgba(0, 32, 63, 0.7)), url('https://images.unsplash.com/photo-1468581264429-2548ef9eb732?q=80&w=2070&auto=format&fit=crop');
             background-size: cover;
@@ -103,13 +103,56 @@
             position: relative;
         }
 
-        /* Supply Chain Node Animation */
-        .sc-node {
-            transition: all 0.3s ease;
+        /* Financial Table Styling */
+        .fin-table td {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #f1f5f9;
         }
-        .sc-node:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        .fin-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Image Cards for CAPEX */
+        .capex-card {
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+            border-radius: 0.75rem;
+            transition: transform 0.3s ease;
+        }
+        .capex-card:hover {
+            transform: scale(1.02);
+        }
+        .capex-overlay {
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1rem;
+        }
+
+        /* Waterfall Chart Bars */
+        .wf-bar {
+            height: 2.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            padding-left: 1rem;
+            font-weight: bold;
+            color: white;
+            position: relative;
+            transition: width 1s ease-out;
+        }
+        .wf-label {
+            position: absolute;
+            right: 1rem;
+            color: white;
+            font-weight: normal;
+            font-size: 0.875rem;
         }
     </style>
 </head>
@@ -130,7 +173,6 @@
                     <a href="#financials" class="text-slate-600 hover:text-teal-600 font-medium transition text-sm lg:text-base">Financials</a>
                     <a href="#team" class="text-slate-600 hover:text-teal-600 font-medium transition text-sm lg:text-base">Team</a>
                 </div>
-                <!-- 1. FIXED: Correct Mailto Link -->
                 <a href="mailto:hchang325@bloomberg.net" class="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2.5 rounded-full font-bold transition shadow-lg shadow-teal-500/30 text-sm">
                     Invest Now
                 </a>
@@ -139,7 +181,8 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero-bg min-h-screen flex items-center pt-20">
+    <!-- Increased pt-40 for safer top margin -->
+    <section class="hero-bg min-h-screen flex items-center pt-40 pb-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div class="grid md:grid-cols-2 gap-12 items-center">
                 <div class="text-white space-y-8 animate-[fadeIn_1s_ease-out]">
@@ -162,7 +205,7 @@
                         </button>
                     </div>
                     
-                    <div class="grid grid-cols-3 gap-6 pt-8 border-t border-white/10 mt-8">
+                    <div class="grid grid-cols-3 gap-6 pt-12 border-t border-white/10 mt-8 pb-4">
                         <div>
                             <div class="text-3xl font-bold text-white">24.3%</div>
                             <div class="text-sm text-teal-200">EBITDA Margin</div>
@@ -178,7 +221,7 @@
                     </div>
                 </div>
                 
-                <!-- 2. NEW: Real-time Global Waste Counter -->
+                <!-- Real-time Global Waste Counter -->
                 <div class="hidden md:block relative h-[500px] flex items-center justify-center">
                     <div class="bg-slate-900/40 backdrop-blur-xl border border-white/20 p-8 rounded-3xl shadow-2xl max-w-md w-full relative overflow-hidden group">
                         <div class="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition duration-700"></div>
@@ -191,11 +234,11 @@
                         </div>
 
                         <div class="text-center space-y-2 mb-8 relative z-10">
-                            <div class="text-sm text-slate-300 uppercase tracking-widest">Ghost Nets in Ocean (Tons)</div>
-                            <!-- Counter: Starts at huge number, increments every second -->
-                            <!-- Base: 640,000 tons/year = ~1.2kg per minute. Starting from fictional base to show scale -->
-                            <div class="text-5xl font-mono font-bold text-white tracking-tighter" id="global-counter">640,000</div>
-                            <div class="text-xs text-slate-400">Increasing by ~1.2 tons every minute</div>
+                            <div class="text-sm text-slate-300 uppercase tracking-widest">Ghost Nets in Ocean (KG)</div>
+                            <div class="text-5xl font-mono font-bold text-white tracking-tighter tabular-nums" id="global-counter">640,000,000</div>
+                            <div class="text-xs text-slate-400 flex justify-center items-center gap-1">
+                                <i class="fa-solid fa-arrow-trend-up text-red-500"></i> Continuous Influx (~2kg/sec)
+                            </div>
                         </div>
 
                         <div class="space-y-4 relative z-10">
@@ -260,7 +303,7 @@
         </div>
     </section>
 
-    <!-- 3. NEW: Supply Chain Section -->
+    <!-- Supply Chain Section -->
     <section id="supply-chain" class="py-24 bg-slate-50 border-y border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
@@ -272,11 +315,9 @@
             </div>
 
             <div class="relative">
-                <!-- Connecting Line (Desktop) -->
                 <div class="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-slate-200 -translate-y-1/2 z-0"></div>
-
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-8 relative z-10">
-                    <!-- Step 1: Source -->
+                    <!-- Step 1 -->
                     <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 text-center sc-node">
                         <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl text-blue-600 shadow-sm">
                             <i class="fa-solid fa-ship"></i>
@@ -285,8 +326,7 @@
                         <p class="text-sm text-slate-500 mt-2">Remote fishing communities in Vietnam & SE Asia.</p>
                         <div class="mt-4 inline-block bg-slate-100 px-3 py-1 rounded text-xs font-mono text-slate-600">Raw Waste Net</div>
                     </div>
-
-                    <!-- Step 2: Aggregation (Net-Weave) -->
+                    <!-- Step 2 -->
                     <div class="bg-teal-600 p-6 rounded-2xl shadow-xl border border-teal-500 text-center transform md:scale-110 sc-node relative">
                         <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full shadow-md">OUR VALUE ADD</div>
                         <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl text-teal-600 shadow-sm">
@@ -296,8 +336,7 @@
                         <p class="text-sm text-teal-100 mt-2">Collection, Cleaning, Baling, & Blockchain Verification.</p>
                         <div class="mt-4 inline-block bg-teal-800 px-3 py-1 rounded text-xs font-mono text-teal-200">Verified Feedstock</div>
                     </div>
-
-                    <!-- Step 3: Processing -->
+                    <!-- Step 3 -->
                     <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 text-center sc-node">
                         <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl text-indigo-600 shadow-sm">
                             <i class="fa-solid fa-industry"></i>
@@ -306,8 +345,7 @@
                         <p class="text-sm text-slate-500 mt-2">Industrial depolymerization partners (e.g., Aquafil).</p>
                         <div class="mt-4 inline-block bg-slate-100 px-3 py-1 rounded text-xs font-mono text-slate-600">Econyl / Nylon 6</div>
                     </div>
-
-                    <!-- Step 4: Brand -->
+                    <!-- Step 4 -->
                     <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 text-center sc-node">
                         <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl text-green-600 shadow-sm">
                             <i class="fa-solid fa-shirt"></i>
@@ -420,38 +458,148 @@
         </div>
     </section>
 
-    <!-- Financials Section -->
+    <!-- Financials Section (Deep Dive) -->
     <section id="financials" class="py-24 bg-white border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <span class="text-teal-600 font-bold tracking-wider uppercase text-sm">Validating the Model</span>
-                <h2 class="text-3xl font-bold text-slate-900 mt-2">Financial Projections</h2>
-                <p class="text-slate-600 mt-4 max-w-2xl mx-auto leading-relaxed">
-                    Our dual-revenue model (Nylon Sales + Plastic Credits) creates a "risk hedge" against commodity volatility. The projections below demonstrate robust growth and healthy margins as we scale from 1 pilot hub to a network of 12 hubs.
+                <span class="text-teal-600 font-bold tracking-wider uppercase text-sm">Investor Overview</span>
+                <h2 class="text-3xl font-bold text-slate-900 mt-2">Financial Projections & Bond Details</h2>
+                <p class="text-slate-600 mt-4 max-w-2xl mx-auto">
+                    A rigorous financial model backed by dual-revenue streams (Material Sales + Impact Credits), ensuring stable returns and scalable impact.
                 </p>
             </div>
 
-            <div class="grid lg:grid-cols-3 gap-12 items-center">
+            <!-- Top Row: Chart -->
+            <div class="grid lg:grid-cols-3 gap-12 items-start mb-16">
                 <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-lg border border-slate-100">
                     <canvas id="financialChart" width="400" height="250"></canvas>
                 </div>
                 <div class="space-y-6">
-                    <div class="bg-slate-50 p-6 rounded-xl border-l-4 border-teal-500 shadow-sm">
-                        <div class="text-sm text-slate-500 uppercase font-bold mb-1">Year 3 Target Revenue</div>
-                        <div class="text-3xl font-bold text-slate-900">$3.7 Million</div>
-                        <div class="text-sm text-slate-600 mt-2">Driven by scaling to 12 Hubs and establishing long-term B2B offtake agreements.</div>
+                    <!-- Profit Waterfall / Visualization -->
+                    <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-xl">
+                        <h4 class="font-bold text-teal-400 mb-6 flex items-center gap-2">
+                            <i class="fa-solid fa-water"></i> Profit Waterfall (Year 3)
+                        </h4>
+                        <div class="space-y-4">
+                            <!-- Revenue -->
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span class="font-bold">Total Revenue</span>
+                                    <span>$3.7M</span>
+                                </div>
+                                <div class="wf-bar bg-teal-600 w-full">
+                                    <span class="z-10 relative px-2">100%</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Minus COGS -->
+                            <div>
+                                <div class="flex justify-between text-sm mb-1 text-slate-400">
+                                    <span>(-) COGS: Fishers & Transport</span>
+                                    <span>$2.0M</span>
+                                </div>
+                                <div class="wf-bar bg-slate-700 w-[54%]">
+                                    <span class="z-10 relative px-2 text-xs">54%</span>
+                                </div>
+                            </div>
+
+                            <!-- Minus OPEX -->
+                            <div>
+                                <div class="flex justify-between text-sm mb-1 text-slate-400">
+                                    <span>(-) OPEX: Hub Operations</span>
+                                    <span>$0.8M</span>
+                                </div>
+                                <div class="wf-bar bg-slate-600 w-[22%]">
+                                    <span class="z-10 relative px-2 text-xs">22%</span>
+                                </div>
+                            </div>
+
+                            <!-- Equals EBITDA -->
+                            <div class="pt-2 border-t border-white/10">
+                                <div class="flex justify-between text-sm mb-1 text-green-400">
+                                    <span class="font-bold">(=) EBITDA (Net Profit)</span>
+                                    <span class="font-bold">$0.9M</span>
+                                </div>
+                                <div class="wf-bar bg-green-500 w-[24%]">
+                                    <span class="z-10 relative px-2 text-slate-900">24.3%</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="bg-slate-50 p-6 rounded-xl border-l-4 border-blue-500 shadow-sm">
-                        <div class="text-sm text-slate-500 uppercase font-bold mb-1">Operational Efficiency</div>
-                        <div class="text-3xl font-bold text-slate-900">24.3%</div>
-                        <div class="text-sm text-blue-600 font-bold">EBITDA Margin</div>
-                        <div class="text-sm text-slate-600 mt-2">Optimized logistics and low-overhead community management.</div>
+                </div>
+            </div>
+
+            <!-- Deep Dive Grid: Term Sheet & Use of Proceeds & Unit Economics -->
+            <div class="grid lg:grid-cols-2 gap-12">
+                
+                <!-- Bond Term Sheet -->
+                <div class="bg-slate-50 rounded-2xl p-8 border border-slate-200 h-full">
+                    <div class="flex items-center gap-3 mb-6">
+                        <i class="fa-solid fa-file-contract text-2xl text-teal-600"></i>
+                        <h3 class="text-xl font-bold text-slate-900">Bond Term Sheet</h3>
                     </div>
-                    <div class="bg-slate-50 p-6 rounded-xl border-l-4 border-purple-500 shadow-sm">
-                        <div class="text-sm text-slate-500 uppercase font-bold mb-1">Investor Return</div>
-                        <div class="text-3xl font-bold text-slate-900">21.9%</div>
-                        <div class="text-sm text-purple-600 font-bold">5-Year IRR</div>
-                        <div class="text-sm text-slate-600 mt-2">Based on conservative exit multiples and bond yield structure.</div>
+                    <table class="w-full text-sm text-slate-600 fin-table">
+                        <tbody>
+                            <tr>
+                                <td class="font-bold text-slate-800">Instrument</td>
+                                <td class="text-right">5-Year Marine Sustainability Bond</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold text-slate-800">Total Issue Size</td>
+                                <td class="text-right font-mono">$2,000,000 USD</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold text-slate-800">Coupon Structure</td>
+                                <td class="text-right">
+                                    <span class="block text-slate-900 font-bold">2.5% Fixed</span>
+                                    <span class="block text-xs text-slate-500">+ 4.0% Variable (Performance Linked)</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold text-slate-800">Target Return</td>
+                                <td class="text-right font-bold text-green-600">~6.5% Blended Yield</td>
+                            </tr>
+                            <tr>
+                                <td class="font-bold text-slate-800">Covenants</td>
+                                <td class="text-right">Annual Impact Audit (Verra/Gold Standard)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Unit Economics Visual Breakdown (New Images) -->
+                <div class="space-y-6">
+                    <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wide mb-2">CAPEX Breakdown (Per Hub: $150k)</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- 1. FIXED: Correct Container/Hub Image -->
+                        <div class="capex-card h-32" style="background-image: url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=2068&auto=format&fit=crop');">
+                            <div class="capex-overlay">
+                                <div class="text-white font-bold text-lg">$80k</div>
+                                <div class="text-teal-200 text-xs uppercase font-bold">Infrastructure</div>
+                            </div>
+                        </div>
+                        <div class="capex-card h-32" style="background-image: url('https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=2072&auto=format&fit=crop');">
+                            <div class="capex-overlay">
+                                <div class="text-white font-bold text-lg">$40k</div>
+                                <div class="text-teal-200 text-xs uppercase font-bold">Solar Grid</div>
+                            </div>
+                        </div>
+                        <!-- 2. FIXED: Recycling Machinery Image -->
+                        <div class="capex-card h-32" style="background-image: url('https://images.unsplash.com/photo-1526951521990-620dc14c214b?q=80&w=1974&auto=format&fit=crop');">
+                            <div class="capex-overlay">
+                                <div class="text-white font-bold text-lg">$30k</div>
+                                <div class="text-teal-200 text-xs uppercase font-bold">Processing</div>
+                            </div>
+                        </div>
+                        <!-- OPEX CARD -->
+                        <div class="bg-slate-900 rounded-lg p-4 flex flex-col justify-center border border-slate-700">
+                            <h5 class="text-slate-400 text-xs font-bold uppercase mb-2">OPEX (Annual)</h5>
+                            <ul class="text-xs text-white space-y-2">
+                                <li class="flex justify-between border-b border-slate-700 pb-1"><span>Labor:</span> <span>$25k</span></li>
+                                <li class="flex justify-between border-b border-slate-700 pb-1"><span>Logistics:</span> <span>$15k</span></li>
+                                <li class="flex justify-between"><span>Maint:</span> <span>$5k</span></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -532,8 +680,17 @@
                 <div class="w-24 h-24 bg-white rounded-full mx-auto mb-6 flex items-center justify-center text-4xl text-teal-500 shadow-md">
                      <i class="fa-solid fa-user-tie"></i>
                 </div>
+                
                 <h3 class="text-3xl font-bold text-slate-900 mb-2">Logan Chang</h3>
-                <p class="text-teal-600 font-bold uppercase tracking-wide text-sm mb-6">Founder & CEO</p>
+                <p class="text-teal-600 font-bold uppercase tracking-wide text-sm mb-4">Founder & CEO</p>
+                
+                <!-- 4. FIXED: LinkedIn Button -->
+                <div class="mb-8">
+                    <a href="https://www.linkedin.com/in/haoche/" target="_blank" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-bold transition shadow-md">
+                        <i class="fa-brands fa-linkedin"></i> Connect on LinkedIn
+                    </a>
+                </div>
+
                 <p class="text-xl text-slate-600 italic max-w-2xl mx-auto mb-10 leading-relaxed">
                     "Bridging the gap between local community action and global financial markets to create a sustainable blue economy."
                 </p>
@@ -587,7 +744,6 @@
                         <span class="org-badge"><i class="fa-solid fa-school text-slate-600"></i> NSYSU</span>
                         <span class="org-badge"><i class="fa-solid fa-chart-line text-red-500"></i> SZSE</span>
                         <span class="org-badge"><i class="fa-solid fa-city text-blue-500"></i> New Taipei City</span>
-                        <span class="org-badge"><i class="fa-solid fa-globe text-gray-700"></i> iCON</span>
                     </div>
                 </div>
             </div>
@@ -646,15 +802,15 @@
             }
         }
 
-        // --- Global Waste Counter Animation ---
+        // --- Global Waste Counter Animation (Fixed to Kg) ---
         function startGlobalCounter() {
             const counterElement = document.getElementById('global-counter');
-            let currentCount = 640000;
-            // Increment by a small random amount to simulate live data
+            let currentCount = 640000000; // 640,000 tons in kg
+            // Increment ~20kg per second (approx)
             setInterval(() => {
-                currentCount += (Math.random() * 0.05); // Simulated increase
+                currentCount += 2; // Fixed constant increment 
                 counterElement.innerText = Math.floor(currentCount).toLocaleString();
-            }, 2000); // Update every 2 seconds
+            }, 1000); // Slower update for easier reading
         }
         startGlobalCounter();
 
