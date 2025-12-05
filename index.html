@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,7 +6,6 @@
     <title>Net-Weave | Marine Sustainability Bond</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js for Financial Models -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Merriweather:wght@300;400;700&display=swap');
@@ -103,6 +102,61 @@
             position: relative;
         }
 
+        /* Map Pin Animation */
+        .map-pin {
+            position: absolute;
+            width: 14px; /* Reduced from 24px */
+            height: 14px; /* Reduced from 24px */
+            background: #11caa0;
+            border: 2px solid white; /* Reduced border */
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        .map-pin:hover {
+            transform: scale(1.5);
+            background: #f59e0b;
+            z-index: 50;
+        }
+        .map-pin::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px; /* Scaled down pulse */
+            height: 24px;
+            background: rgba(17, 202, 160, 0.4);
+            border-radius: 50%;
+            animation: pulse-ring 2s infinite;
+            z-index: -1;
+        }
+        @keyframes pulse-ring {
+            0% { width: 14px; height: 14px; opacity: 0.8; }
+            100% { width: 40px; height: 40px; opacity: 0; }
+        }
+        
+        /* Tooltip for Map */
+        .pin-tooltip {
+            position: absolute;
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            width: 260px;
+            text-align: left;
+            display: none;
+            z-index: 200;
+            font-size: 0.75rem;
+            pointer-events: none;
+            border: 1px solid #e2e8f0;
+        }
+        .map-pin:hover .pin-tooltip {
+            display: block;
+        }
+
         /* Financial Table Styling */
         .fin-table td {
             padding-top: 0.75rem;
@@ -154,6 +208,63 @@
             font-weight: normal;
             font-size: 0.875rem;
         }
+
+        /* Grid Item for Redemption */
+        .store-item {
+            transition: all 0.2s ease;
+        }
+        .store-item:hover {
+            transform: translateY(-2px);
+            border-color: #11caa0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Video Container */
+        .video-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+        .video-container video {
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
+        }
+        .hero-overlay {
+            background: linear-gradient(rgba(0, 32, 63, 0.8), rgba(0, 32, 63, 0.6));
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        /* Custom Scrollbar for Store */
+        .store-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .store-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        .store-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .store-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -167,7 +278,7 @@
                     <span class="font-serif font-bold text-xl text-slate-900">Net-Weave</span>
                 </div>
                 <div class="hidden md:flex space-x-6 lg:space-x-8">
-                    <a href="#context" class="text-slate-600 hover:text-teal-600 font-medium transition text-sm lg:text-base">Context</a>
+                    <a href="#map" class="text-slate-600 hover:text-teal-600 font-medium transition text-sm lg:text-base">Locations</a>
                     <a href="#supply-chain" class="text-slate-600 hover:text-teal-600 font-medium transition text-sm lg:text-base">Supply Chain</a>
                     <a href="#demo" class="text-slate-600 hover:text-teal-600 font-medium transition text-sm lg:text-base">Live Demo</a>
                     <a href="#financials" class="text-slate-600 hover:text-teal-600 font-medium transition text-sm lg:text-base">Financials</a>
@@ -181,31 +292,37 @@
     </nav>
 
     <!-- Hero Section -->
-    <!-- Increased pt-40 for safer top margin -->
-    <section class="hero-bg min-h-screen flex items-center pt-40 pb-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+    <section class="relative min-h-screen flex items-center pt-40 pb-20 overflow-hidden">
+        <div class="video-container">
+            <video autoplay muted loop playsinline>
+                <source src="https://videos.pexels.com/video-files/854009/854009-hd_1920_1080_25fps.mp4" type="video/mp4">
+            </video>
+            <div class="hero-overlay"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
             <div class="grid md:grid-cols-2 gap-12 items-center">
                 <div class="text-white space-y-8 animate-[fadeIn_1s_ease-out]">
-                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 border border-teal-500/50 text-teal-300 text-sm font-medium">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 border border-teal-500/50 text-teal-300 text-sm font-medium backdrop-blur-sm">
                         <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
                         Inaugural Marine Bond
                     </div>
                     <h1 class="text-5xl md:text-7xl font-bold leading-tight tracking-tight">
                         Turning <span class="text-teal-400">Ghost Nets</span> into <span class="text-teal-400">Social Wealth</span>.
                     </h1>
-                    <p class="text-xl text-slate-200 max-w-lg leading-relaxed">
+                    <p class="text-xl text-slate-200 max-w-lg leading-relaxed drop-shadow-md">
                         A market aggregator leveraging blockchain to transform marine waste into traceable recycled nylon and community welfare.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 pt-4">
                         <button onclick="document.getElementById('demo').scrollIntoView()" class="bg-white text-slate-900 px-8 py-4 rounded-full font-bold hover:bg-slate-100 transition flex items-center justify-center gap-2 shadow-xl">
                             <i class="fa-solid fa-play"></i> Try the Demo
                         </button>
-                        <button onclick="document.getElementById('financials').scrollIntoView()" class="bg-white/10 backdrop-blur border border-white/30 text-white px-8 py-4 rounded-full font-bold hover:bg-white/20 transition flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-chart-line"></i> Financials
+                        <button onclick="document.getElementById('map').scrollIntoView()" class="bg-white/10 backdrop-blur-md border border-white/30 text-white px-8 py-4 rounded-full font-bold hover:bg-white/20 transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-map-location-dot"></i> View Locations
                         </button>
                     </div>
                     
-                    <div class="grid grid-cols-3 gap-6 pt-12 border-t border-white/10 mt-8 pb-4">
+                    <div class="grid grid-cols-3 gap-6 pt-12 border-t border-white/10 mt-8 pb-4 backdrop-blur-sm rounded-xl px-4 bg-black/20">
                         <div>
                             <div class="text-3xl font-bold text-white">24.3%</div>
                             <div class="text-sm text-teal-200">EBITDA Margin</div>
@@ -267,36 +384,97 @@
         </div>
     </section>
 
-    <!-- Context / Business Case Section -->
-    <section id="context" class="py-24 bg-white">
+    <!-- 2. Map Section -->
+    <section id="map" class="py-24 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <span class="text-teal-600 font-bold tracking-wider uppercase text-sm">The Business Case</span>
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-2">Breaking the Vicious Cycle</h2>
+            <div class="text-center mb-16">
+                <span class="text-teal-600 font-bold tracking-wider uppercase text-sm">Our Footprint</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-2">Strategic Hub Locations</h2>
+                <p class="text-slate-600 mt-4 max-w-2xl mx-auto">
+                    We operate 12 hubs across key coastal provinces, strategically located near major industrial zones to streamline the supply chain for our B2B partners.
+                </p>
             </div>
-            
-            <div class="bg-slate-50 rounded-3xl shadow-xl overflow-hidden border border-slate-100">
-                <div class="p-4 bg-slate-900 border-b border-slate-800 flex justify-center gap-4 flex-wrap">
-                     <button onclick="setMode('vicious')" id="btn-vicious" class="px-6 py-2 rounded-full text-sm md:text-base font-bold transition flex items-center gap-2">
-                        The Broken Market
-                    </button>
-                    <button onclick="setMode('virtuous')" id="btn-virtuous" class="px-6 py-2 rounded-full text-sm md:text-base font-bold transition flex items-center gap-2">
-                        The Hidden Opportunity
-                    </button>
-                </div>
 
-                <div class="grid md:grid-cols-2 gap-0 min-h-[600px]">
-                    <div class="p-8 md:p-12 flex flex-col justify-center bg-white border-r border-slate-100">
-                        <div id="cycle-text" class="space-y-6">
-                            <!-- Text Injected JS -->
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="relative bg-slate-50 rounded-3xl p-8 border border-slate-100 shadow-inner min-h-[600px] flex items-center justify-center overflow-hidden">
+                    <div class="relative h-[550px] w-full flex justify-center">
+                        <img src="https://images.jifo.co/65139249_1645604526205.png" alt="Vietnam Industrial Map" class="h-full object-contain opacity-90" style="max-width: 100%;">
+                        
+                        <!-- Map Pins -->
+                        <div class="map-pin" style="top: 22%; left: 34%;">
+                            <div class="pin-tooltip">
+                                <div class="font-bold text-teal-600 border-b pb-1 mb-1">Hai Phong Hub</div>
+                                <div class="text-left space-y-1">
+                                    <div class="font-bold text-slate-700">Near: Dinh Vu-Cat Hai EZ</div>
+                                    <div class="text-slate-500">Partner: VinFast, LG Display</div>
+                                    <div class="text-teal-600 font-mono text-xs mt-1">180t Collected</div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Da Nang (Shifted Right to 65%) -->
+                        <div class="map-pin" style="top: 48%; left: 65%;">
+                            <div class="pin-tooltip">
+                                <div class="font-bold text-teal-600 border-b pb-1 mb-1">Da Nang Central</div>
+                                <div class="text-left space-y-1">
+                                    <div class="font-bold text-slate-700">Near: Hoa Khanh IZ</div>
+                                    <div class="text-slate-500">Partner: Local Textile Co-ops</div>
+                                    <div class="text-teal-600 font-mono text-xs mt-1">150t Collected</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="map-pin" style="top: 68%; left: 44%;">
+                            <div class="pin-tooltip">
+                                <div class="font-bold text-teal-600 border-b pb-1 mb-1">Nha Trang Hub</div>
+                                <div class="text-left space-y-1">
+                                    <div class="font-bold text-slate-700">Near: Suoi Dau IZ</div>
+                                    <div class="text-slate-500">Partner: Khatoco</div>
+                                    <div class="text-teal-600 font-mono text-xs mt-1">120t Collected</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="map-pin" style="top: 80%; left: 22%;">
+                            <div class="pin-tooltip">
+                                <div class="font-bold text-teal-600 border-b pb-1 mb-1">Vung Tau / Dong Nai</div>
+                                <div class="text-left space-y-1">
+                                    <div class="font-bold text-slate-700">Near: Pou Chen (Bien Hoa)</div>
+                                    <div class="text-slate-500">Partner: Pou Chen, Far Eastern</div>
+                                    <div class="text-teal-600 font-mono text-xs mt-1">200t Collected</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <!-- Diagram Container -->
-                    <div class="bg-slate-100 p-8 flex items-center justify-center relative overflow-hidden">
-                        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/graphy.png')] opacity-40"></div>
-                        <div id="diagram-content" class="w-full h-full flex items-center justify-center relative z-10">
-                            <!-- Diagram Injected JS -->
+                </div>
+
+                <div class="space-y-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center text-teal-600 text-xl"><i class="fa-solid fa-industry"></i></div>
+                            <div>
+                                <h4 class="font-bold text-lg">Proximity to Manufacturing</h4>
+                                <p class="text-sm text-slate-500">Hubs are strategically located near major industrial zones like Tan Tao and Dinh Vu, enabling direct feedstock supply to partners.</p>
+                            </div>
                         </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl"><i class="fa-solid fa-handshake"></i></div>
+                            <div>
+                                <h4 class="font-bold text-lg">Key Industry Partners</h4>
+                                <ul class="text-sm text-slate-500 list-disc list-inside">
+                                    <li><strong>Pou Chen (寶成):</strong> Nike/Adidas OEM giant</li>
+                                    <li><strong>Far Eastern New Century (遠東新世紀):</strong> Textile innovation</li>
+                                    <li><strong>Formosa Industries:</strong> Polymer processing</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900 text-white p-8 rounded-2xl shadow-xl">
+                        <h4 class="font-bold mb-4">Phase 1 Target: Vietnam</h4>
+                        <ul class="space-y-3 text-sm text-slate-300">
+                            <li class="flex justify-between border-b border-white/10 pb-2"><span>Total Coastline Covered:</span> <span>3,260 km</span></li>
+                            <li class="flex justify-between border-b border-white/10 pb-2"><span>Active Hubs:</span> <span>12</span></li>
+                            <li class="flex justify-between pt-1"><span>Annual Capacity:</span> <span>1,800 tons</span></li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -359,106 +537,69 @@
         </div>
     </section>
 
-    <!-- Redemption System Demo -->
+    <!-- 3. FIXED: Redemption System Demo (Fixed Store Layout) -->
     <section id="demo" class="py-24 bg-slate-900 text-white relative">
         <div class="absolute inset-0 bg-gradient-to-br from-slate-900 to-slate-800"></div>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="grid lg:grid-cols-2 gap-16 items-center">
-                <div>
-                    <span class="text-teal-400 font-bold tracking-wider uppercase text-sm border border-teal-500/30 px-3 py-1 rounded-full bg-teal-500/10">Live Web Demo</span>
-                    <h2 class="text-4xl font-bold mt-4 mb-6">Digital Welfare System</h2>
-                    <p class="text-slate-400 text-lg mb-8 leading-relaxed">
-                        This interface powers our Community Hubs. It serves as the critical "Trust Layer" that verifies net collection and facilitates the exchange of waste for welfare.
-                    </p>
-                    <div class="space-y-4">
-                        <div class="flex items-start gap-4 p-4 bg-slate-800/50 rounded-xl border border-slate-700">
-                            <div class="bg-teal-500/20 p-3 rounded-lg text-teal-400 mt-1"><i class="fa-solid fa-scale-balanced text-xl"></i></div>
-                            <div>
-                                <h4 class="font-bold text-white">1. Data Entry & Verification</h4>
-                                <p class="text-sm text-slate-400 mt-1">Hub managers weigh incoming nets. IoT-connected scales log the weight (kg) directly to our blockchain ledger, preventing data tampering.</p>
+            <div class="text-center mb-12">
+                <span class="text-teal-400 font-bold tracking-wider uppercase text-sm border border-teal-500/30 px-3 py-1 rounded-full bg-teal-500/10">Live Web Demo</span>
+                <h2 class="text-4xl font-bold mt-4">Digital Welfare Marketplace</h2>
+                <p class="text-slate-400 mt-2">Real items fishers can redeem. This is how we convert pollution into human capital.</p>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-8 items-start">
+                <!-- Left: Wallet & Input (Static position, No Sticky) -->
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="bg-white text-slate-900 rounded-3xl shadow-2xl overflow-hidden border-4 border-slate-700">
+                        <div class="bg-teal-600 p-6 text-white">
+                            <div class="text-xs opacity-80 uppercase tracking-wide">Fisher Wallet</div>
+                            <div class="text-3xl font-bold flex items-center gap-2 mt-1">
+                                <i class="fa-solid fa-coins"></i> <span id="wallet-balance">0</span>
                             </div>
+                            <p class="text-xs text-teal-200 mt-2">Scan QR to receive credits</p>
                         </div>
-                        <div class="flex items-start gap-4 p-4 bg-slate-800/50 rounded-xl border border-slate-700">
-                            <div class="bg-blue-500/20 p-3 rounded-lg text-blue-400 mt-1"><i class="fa-solid fa-wallet text-xl"></i></div>
-                            <div>
-                                <h4 class="font-bold text-white">2. Instant Value Transfer</h4>
-                                <p class="text-sm text-slate-400 mt-1">Algorithm converts weight to Net-Weave Credits (15 credits/kg). Fishers can instantly redeem these for pre-vetted goods (food, insurance, energy).</p>
+                        
+                        <div class="p-6 bg-slate-50 border-b border-slate-200">
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Log Net Collection (Kg)</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="net-input" placeholder="kg" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none font-mono text-lg">
+                                <button onclick="depositNets()" class="bg-teal-600 hover:bg-teal-700 text-white px-6 rounded-xl font-bold transition shadow-lg shadow-teal-500/20 whitespace-nowrap">
+                                    Log
+                                </button>
                             </div>
+                            <p class="text-xs text-slate-500 mt-3 flex items-center justify-between">
+                                <span><i class="fa-solid fa-circle-info"></i> Rate: 15 Credits/kg</span>
+                                <span class="text-green-600 font-bold"><i class="fa-solid fa-link"></i> Live</span>
+                            </p>
+                        </div>
+                        <div id="demo-msg" class="p-4 text-center text-xs text-slate-500 font-mono min-h-[48px] flex items-center justify-center bg-slate-100">
+                            System Ready. Waiting for input...
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
+                        <h4 class="font-bold mb-4 text-sm uppercase tracking-wide text-slate-400">Category Filter</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="filterItems('all')" class="px-3 py-1 rounded-full text-xs font-bold bg-teal-600 text-white filter-btn" data-filter="all">All</button>
+                            <button onclick="filterItems('food')" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-700 text-slate-300 hover:bg-slate-600 transition filter-btn" data-filter="food">Food</button>
+                            <button onclick="filterItems('health')" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-700 text-slate-300 hover:bg-slate-600 transition filter-btn" data-filter="health">Health</button>
+                            <button onclick="filterItems('education')" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-700 text-slate-300 hover:bg-slate-600 transition filter-btn" data-filter="education">Education</button>
+                            <button onclick="filterItems('tools')" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-700 text-slate-300 hover:bg-slate-600 transition filter-btn" data-filter="tools">Tools</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Interactive App Interface -->
-                <div class="bg-white text-slate-900 rounded-3xl shadow-2xl overflow-hidden max-w-md mx-auto w-full border-4 border-slate-700">
-                    <div class="bg-teal-600 p-6 text-white flex justify-between items-center">
-                        <div>
-                            <div class="text-xs opacity-80 uppercase tracking-wide">Fisher Wallet</div>
-                            <div class="text-2xl font-bold flex items-center gap-2">
-                                <i class="fa-solid fa-coins"></i> <span id="wallet-balance">0</span>
-                            </div>
-                        </div>
-                        <div class="bg-white/20 p-2 rounded-lg cursor-pointer hover:bg-white/30 transition">
-                            <i class="fa-solid fa-qrcode text-2xl"></i>
-                        </div>
-                    </div>
-                    
-                    <div class="p-6 bg-slate-50 border-b border-slate-200">
-                        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Simulate Collection (Input Weight)</label>
-                        <div class="flex gap-2">
-                            <input type="number" id="net-input" placeholder="kg" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none font-mono text-lg">
-                            <button onclick="depositNets()" class="bg-teal-600 hover:bg-teal-700 text-white px-6 rounded-xl font-bold transition shadow-lg shadow-teal-500/20 whitespace-nowrap">
-                                Log & Credit
-                            </button>
-                        </div>
-                        <p class="text-xs text-slate-500 mt-2 flex items-center gap-1"><i class="fa-solid fa-link"></i> Blockchain Status: <span class="text-green-600 font-bold">Connected</span></p>
-                    </div>
-
-                    <div class="p-6">
-                        <h4 class="font-bold text-slate-800 mb-4 text-sm uppercase tracking-wide">Redemption Options</h4>
-                        <div class="space-y-3">
-                            <button onclick="redeemItem(300, 'Rice (1kg)')" class="w-full flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl hover:border-teal-500 hover:shadow-md transition group">
-                                <div class="flex items-center gap-3">
-                                    <div class="bg-yellow-100 text-yellow-600 w-10 h-10 rounded-lg flex items-center justify-center"><i class="fa-solid fa-bowl-rice"></i></div>
-                                    <div class="text-left">
-                                        <div class="font-bold text-slate-800">Rice (1kg)</div>
-                                        <div class="text-xs text-slate-500">Essential Food</div>
-                                    </div>
-                                </div>
-                                <div class="text-teal-600 font-bold group-hover:scale-110 transition">300 <span class="text-xs">pts</span></div>
-                            </button>
-
-                            <button onclick="redeemItem(1500, 'Health Insurance')" class="w-full flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl hover:border-teal-500 hover:shadow-md transition group">
-                                <div class="flex items-center gap-3">
-                                    <div class="bg-red-100 text-red-600 w-10 h-10 rounded-lg flex items-center justify-center"><i class="fa-solid fa-heart-pulse"></i></div>
-                                    <div class="text-left">
-                                        <div class="font-bold text-slate-800">Health Insurance</div>
-                                        <div class="text-xs text-slate-500">1 Month Coverage</div>
-                                    </div>
-                                </div>
-                                <div class="text-teal-600 font-bold group-hover:scale-110 transition">1,500 <span class="text-xs">pts</span></div>
-                            </button>
-                            
-                            <button onclick="redeemItem(3000, 'School Fees')" class="w-full flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl hover:border-teal-500 hover:shadow-md transition group">
-                                <div class="flex items-center gap-3">
-                                    <div class="bg-blue-100 text-blue-600 w-10 h-10 rounded-lg flex items-center justify-center"><i class="fa-solid fa-graduation-cap"></i></div>
-                                    <div class="text-left">
-                                        <div class="font-bold text-slate-800">School Fees</div>
-                                        <div class="text-xs text-slate-500">1 Term</div>
-                                    </div>
-                                </div>
-                                <div class="text-teal-600 font-bold group-hover:scale-110 transition">3,000 <span class="text-xs">pts</span></div>
-                            </button>
-                        </div>
-                    </div>
-                    <div id="demo-msg" class="bg-slate-100 p-2 text-center text-xs text-slate-500 font-mono min-h-[32px] border-t border-slate-200">
-                        System Ready...
+                <!-- Right: Expanded Redemption Grid (Auto Height - No Scrollbar) -->
+                <div class="lg:col-span-8 z-10">
+                    <div class="bg-white rounded-3xl p-6 h-[600px] overflow-y-auto shadow-inner border border-slate-700 store-scroll" id="store-grid">
+                        <!-- Items injected by JS -->
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Financials Section (Deep Dive) -->
+    <!-- Financials Section (Updated Chart) -->
     <section id="financials" class="py-24 bg-white border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
@@ -469,10 +610,13 @@
                 </p>
             </div>
 
-            <!-- Top Row: Chart -->
+            <!-- Top Row: Chart (Smaller Sized & Restored) -->
             <div class="grid lg:grid-cols-3 gap-12 items-start mb-16">
-                <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-lg border border-slate-100">
-                    <canvas id="financialChart" width="400" height="250"></canvas>
+                <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-lg border border-slate-100 relative">
+                    <!-- Constrained Container Height -->
+                    <div class="h-80">
+                        <canvas id="financialChart"></canvas>
+                    </div>
                 </div>
                 <div class="space-y-6">
                     <!-- Profit Waterfall / Visualization -->
@@ -481,16 +625,18 @@
                             <i class="fa-solid fa-water"></i> Profit Waterfall (Year 3)
                         </h4>
                         <div class="space-y-4">
-                            <!-- Revenue -->
-                            <div>
+                            <!-- Revenue Mix Card -->
+                             <div class="bg-white/10 p-3 rounded-lg mb-4">
+                                <div class="text-xs text-slate-400 uppercase font-bold mb-2">Revenue Mix</div>
                                 <div class="flex justify-between text-sm mb-1">
-                                    <span class="font-bold">Total Revenue</span>
-                                    <span>$3.7M</span>
+                                    <span>Nylon Sales</span>
+                                    <span class="font-bold text-teal-300">$2.7M</span>
                                 </div>
-                                <div class="wf-bar bg-teal-600 w-full">
-                                    <span class="z-10 relative px-2">100%</span>
+                                <div class="flex justify-between text-sm">
+                                    <span>Plastic Credits</span>
+                                    <span class="font-bold text-yellow-300">$1.0M</span>
                                 </div>
-                            </div>
+                             </div>
                             
                             <!-- Minus COGS -->
                             <div>
@@ -567,28 +713,29 @@
                     </table>
                 </div>
 
-                <!-- Unit Economics Visual Breakdown (New Images) -->
+                <!-- Unit Economics Visual Breakdown (4. FIXED: Restored Images) -->
                 <div class="space-y-6">
                     <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wide mb-2">CAPEX Breakdown (Per Hub: $150k)</h4>
                     <div class="grid grid-cols-2 gap-4">
-                        <!-- 1. FIXED: Correct Container/Hub Image -->
-                        <div class="capex-card h-32" style="background-image: url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=2068&auto=format&fit=crop');">
+                        <!-- Infrastructure -->
+                        <div class="capex-card h-32" style="background-image: url('https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjlmfelJgybDenQ1oQONZWIAQqNDaS2bKb-aT4J_5lWxjGCCif0F9VgI1FzoVlcEioH8zo_Kwr3jvs7Y6iPBD9F_Yp8N86n2Rz51DuWGh72-0YkN3NvftZOwvHZMhP-RBKbaypl0pdF1QA/s1600/Terrace-Container-House-in-Kall-Germany2.jpg');">
                             <div class="capex-overlay">
                                 <div class="text-white font-bold text-lg">$80k</div>
-                                <div class="text-teal-200 text-xs uppercase font-bold">Infrastructure</div>
+                                <div class="text-teal-200 text-xs uppercase font-bold">Infrastructure (Container)</div>
                             </div>
                         </div>
+                        <!-- Solar -->
                         <div class="capex-card h-32" style="background-image: url('https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=2072&auto=format&fit=crop');">
                             <div class="capex-overlay">
                                 <div class="text-white font-bold text-lg">$40k</div>
                                 <div class="text-teal-200 text-xs uppercase font-bold">Solar Grid</div>
                             </div>
                         </div>
-                        <!-- 2. FIXED: Recycling Machinery Image -->
-                        <div class="capex-card h-32" style="background-image: url('https://images.unsplash.com/photo-1526951521990-620dc14c214b?q=80&w=1974&auto=format&fit=crop');">
+                        <!-- Processing -->
+                        <div class="capex-card h-32" style="background-image: url('https://www.pulian.com/cht/images/index_pro_pic01.jpg');">
                             <div class="capex-overlay">
                                 <div class="text-white font-bold text-lg">$30k</div>
-                                <div class="text-teal-200 text-xs uppercase font-bold">Processing</div>
+                                <div class="text-teal-200 text-xs uppercase font-bold">Processing Equip</div>
                             </div>
                         </div>
                         <!-- OPEX CARD -->
@@ -677,14 +824,14 @@
             </div>
             
             <div class="bg-slate-50 rounded-3xl shadow-lg border border-slate-100 p-8 md:p-12 text-center">
-                <div class="w-24 h-24 bg-white rounded-full mx-auto mb-6 flex items-center justify-center text-4xl text-teal-500 shadow-md">
-                     <i class="fa-solid fa-user-tie"></i>
+                <!-- 5. FIXED: Logan's Real Photo from LinkedIn -->
+                <div class="w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden shadow-md border-4 border-white">
+                     <img src="https://media.licdn.com/dms/image/v2/D5603AQHmyHCLawkZyg/profile-displayphoto-shrink_400_400/B56ZdpkBjLHoAg-/0/1749822741853?e=1766620800&v=beta&t=YZqGz7cYLlvne1OgMY_eARlgUAAvTE9BQKfmAN5Q9uk" alt="Logan Chang" class="w-full h-full object-cover">
                 </div>
                 
                 <h3 class="text-3xl font-bold text-slate-900 mb-2">Logan Chang</h3>
                 <p class="text-teal-600 font-bold uppercase tracking-wide text-sm mb-4">Founder & CEO</p>
                 
-                <!-- 4. FIXED: LinkedIn Button -->
                 <div class="mb-8">
                     <a href="https://www.linkedin.com/in/haoche/" target="_blank" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-bold transition shadow-md">
                         <i class="fa-brands fa-linkedin"></i> Connect on LinkedIn
@@ -814,77 +961,114 @@
         }
         startGlobalCounter();
 
-        // --- 1. Content Switcher Logic (Expanded Content) ---
-        const contentData = {
-            vicious: {
-                title: "The Vicious Cycle: Waste & Lost Value",
-                desc: "Every year, <strong>640,000 tons</strong> of 'Ghost Gear' enter our oceans. For a remote fisher in Vietnam, bringing a damaged net back to shore costs fuel and labor, while cutting it loose costs nothing. This isn't just pollution; it's a massive loss of high-value raw material (Nylon 6) that takes 600 years to decompose.",
-                btnClass: "bg-red-500 text-white shadow-lg shadow-red-500/30 border-red-500",
-                highlight: "text-red-500",
-                diagram: `
-                    <div class="flex flex-col items-center justify-center h-full animate-[fadeIn_0.5s_ease-out]">
-                        <div class="bg-white p-4 rounded-xl shadow border border-slate-200 w-56 text-center relative z-10">
-                            <i class="fa-solid fa-sailboat text-4xl text-slate-400 mb-2"></i>
-                            <div class="font-bold text-slate-700">Fisher</div>
-                            <div class="text-xs text-slate-500">Rational Choice: Discard</div>
-                        </div>
-                        <div class="h-16 border-l-2 border-dashed border-red-300 my-2 relative">
-                             <span class="absolute top-1/2 -left-20 text-xs font-bold text-red-400 w-40 text-right pr-4">Cost of Logistics > 0</span>
-                            <i class="fa-solid fa-chevron-down absolute bottom-0 -left-2 text-red-400"></i>
-                        </div>
-                        <div class="bg-red-50 p-4 rounded-xl shadow border border-red-100 w-56 text-center relative z-10">
-                            <i class="fa-solid fa-skull-crossbones text-4xl text-red-500 mb-2"></i>
-                            <div class="font-bold text-red-700">Ocean Pollution</div>
-                            <div class="text-xs font-bold text-red-500">Economic Cost = $0</div>
-                        </div>
-                    </div>
-                `
-            },
-            virtuous: {
-                title: "The Virtuous Flywheel: The Hidden Opportunity",
-                desc: "We turn this environmental liability into a <strong>commodity asset</strong>. By paying fishers for nets, we secure a stable supply of <strong>Nylon 6</strong>—a durable polymer in high demand by global brands (Adidas, Patagonia) seeking recycled feedstock. We bridge the gap between waste and wealth, generating both material sales and verified plastic credits.",
-                btnClass: "bg-teal-500 text-white shadow-lg shadow-teal-500/30 border-teal-500",
-                highlight: "text-teal-500",
-                diagram: `
-                    <div class="relative w-full h-full flex items-center justify-center animate-[fadeIn_0.5s_ease-out]">
-                        <!-- Center -->
-                        <div class="absolute z-20 bg-teal-500 text-white w-28 h-28 rounded-full flex flex-col items-center justify-center font-bold shadow-xl border-4 border-white">
-                            <i class="fa-solid fa-infinity text-2xl mb-1"></i>
-                            <span class="text-xs uppercase tracking-widest">Flywheel</span>
-                        </div>
-                        <!-- Orbit -->
-                        <div class="absolute w-72 h-72 border-2 border-dashed border-teal-200 rounded-full animate-[spin_12s_linear_infinite] z-0"></div>
-                        
-                        <!-- Nodes -->
-                        <div class="absolute top-6 bg-white px-3 py-2 rounded-lg shadow border-l-4 border-blue-500 text-xs font-bold w-40 text-center z-10">
-                            1. Collect & Credit<br><span class="font-normal text-slate-500">Fisher Income</span>
-                        </div>
-                        <div class="absolute bottom-10 right-6 bg-white px-3 py-2 rounded-lg shadow border-l-4 border-green-500 text-xs font-bold w-40 text-center z-10">
-                            2. Material Sales<br><span class="font-normal text-slate-500">Nylon 6 Feedstock</span>
-                        </div>
-                        <div class="absolute bottom-10 left-6 bg-white px-3 py-2 rounded-lg shadow border-l-4 border-yellow-500 text-xs font-bold w-40 text-center z-10">
-                            3. Social Return<br><span class="font-normal text-slate-500">Community Welfare</span>
-                        </div>
-                    </div>
-                `
-            }
+        // --- Map Tooltip Logic ---
+        const mapData = {
+            'haiphong': { title: 'Hai Phong Hub', near: 'Dinh Vu-Cat Hai EZ', partner: 'VinFast, LG Display', stats: '180t Collected' },
+            'danang': { title: 'Da Nang Central', near: 'Hoa Khanh IZ', partner: 'Local Textile Co-ops', stats: '150t Collected' },
+            'nhatrang': { title: 'Nha Trang Hub', near: 'Suoi Dau IZ', partner: 'Khatoco', stats: '120t Collected' },
+            'vungtau': { title: 'Vung Tau / Dong Nai', near: 'Bien Hoa (Pou Chen)', partner: 'Pou Chen, Far Eastern', stats: '200t Collected' }
         };
 
-        function setMode(mode) {
-            document.getElementById('btn-vicious').className = `px-6 py-2 rounded-full text-sm md:text-base font-bold transition flex items-center gap-2 border-2 ${mode === 'vicious' ? contentData['vicious'].btnClass : 'border-slate-200 text-slate-400 hover:bg-slate-50'}`;
-            document.getElementById('btn-virtuous').className = `px-6 py-2 rounded-full text-sm md:text-base font-bold transition flex items-center gap-2 border-2 ${mode === 'virtuous' ? contentData['virtuous'].btnClass : 'border-slate-200 text-slate-400 hover:bg-slate-50'}`;
-
-            const data = contentData[mode];
-            document.getElementById('cycle-text').innerHTML = `
-                <h3 class="text-2xl font-bold text-slate-900 mb-4 animate-[fadeIn_0.5s]">${data.title}</h3>
-                <p class="text-lg text-slate-600 leading-relaxed mb-6 animate-[fadeIn_0.5s]">${data.desc}</p>
+        function showTooltip(evt, location) {
+            const tooltip = document.getElementById('map-tooltip');
+            const data = mapData[location];
+            tooltip.innerHTML = `
+                <div class="font-bold text-teal-600 border-b pb-1 mb-1">${data.title}</div>
+                <div class="text-left space-y-1">
+                    <div class="font-bold text-slate-700">Near: ${data.near}</div>
+                    <div class="text-slate-500 text-xs">Partner: ${data.partner}</div>
+                    <div class="text-teal-600 font-mono text-xs mt-1 font-bold">${data.stats}</div>
+                </div>
             `;
-            document.getElementById('diagram-content').innerHTML = data.diagram;
+            tooltip.style.display = 'block';
         }
-        setMode('vicious');
 
-        // --- 2. Live Demo Logic ---
+        function hideTooltip() {
+            document.getElementById('map-tooltip').style.display = 'none';
+        }
+
+        // --- 2. Live Demo Logic & Expanded Store ---
         let wallet = 0;
+        
+        // 24 Items Database
+        const storeItems = [
+            { name: "Rice (10kg)", cost: 300, icon: "fa-bowl-rice", cat: "food", desc: "Staple food" },
+            { name: "Cooking Oil (5L)", cost: 450, icon: "fa-bottle-droplet", cat: "food", desc: "Essential supply" },
+            { name: "Fish Sauce (Premium)", cost: 150, icon: "fa-bottle-water", cat: "food", desc: "Local necessity" },
+            { name: "Canned Meat (Set)", cost: 200, icon: "fa-drumstick-bite", cat: "food", desc: "Protein source" },
+            { name: "Fresh Vegetables", cost: 100, icon: "fa-carrot", cat: "food", desc: "Weekly supply" },
+            
+            { name: "Health Insurance", cost: 1500, icon: "fa-heart-pulse", cat: "health", desc: "1 Month Coverage" },
+            { name: "Medicine Kit", cost: 500, icon: "fa-kit-medical", cat: "health", desc: "Basic first aid" },
+            { name: "Panadol (Box)", cost: 50, icon: "fa-pills", cat: "health", desc: "Pain relief" },
+            { name: "Vaccination Shot", cost: 800, icon: "fa-syringe", cat: "health", desc: "Flu/Tetanus" },
+            { name: "Doctor Checkup", cost: 1000, icon: "fa-user-doctor", cat: "health", desc: "General visit" },
+
+            { name: "School Fees", cost: 3000, icon: "fa-graduation-cap", cat: "education", desc: "1 Term" },
+            { name: "Textbooks (Set)", cost: 600, icon: "fa-book", cat: "education", desc: "Full grade set" },
+            { name: "School Uniform", cost: 400, icon: "fa-shirt", cat: "education", desc: "Shirt & Pants" },
+            { name: "Notebooks (10pcs)", cost: 100, icon: "fa-pencil", cat: "education", desc: "Writing supplies" },
+            { name: "English Course", cost: 2500, icon: "fa-language", cat: "education", desc: "Online access" },
+
+            { name: "Net Repair Tool", cost: 250, icon: "fa-screwdriver-wrench", cat: "tools", desc: "Maintenance" },
+            { name: "Solar Lantern", cost: 550, icon: "fa-lightbulb", cat: "tools", desc: "Night fishing" },
+            { name: "Life Jacket", cost: 450, icon: "fa-vest", cat: "tools", desc: "Safety gear" },
+            { name: "Waterproof Boots", cost: 350, icon: "fa-shoe-prints", cat: "tools", desc: "Heavy duty" },
+            { name: "Phone Credit", cost: 100, icon: "fa-mobile-screen", cat: "tools", desc: "$5 Top-up" },
+            { name: "Boat Fuel Voucher", cost: 1000, icon: "fa-gas-pump", cat: "tools", desc: "20 Liters" },
+            { name: "Raincoat", cost: 150, icon: "fa-cloud-showers-heavy", cat: "tools", desc: "Durable" },
+            { name: "Water Filter", cost: 1200, icon: "fa-faucet-drip", cat: "health", desc: "Clean water" },
+            { name: "Community Rent", cost: 500, icon: "fa-shop", cat: "food", desc: "Stall fee" }
+        ];
+
+        function renderStore(filter = 'all') {
+            const grid = document.getElementById('store-grid');
+            grid.innerHTML = '';
+            
+            // Filter Logic
+            let filtered = storeItems;
+            if (filter !== 'all') {
+                filtered = storeItems.filter(i => i.cat === filter);
+            }
+            
+            // Sort by cost ascending
+            filtered.sort((a, b) => a.cost - b.cost);
+            
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "store-item w-full flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl mb-3 cursor-pointer group";
+                div.onclick = () => redeemItem(item.cost, item.name);
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="bg-slate-100 text-slate-600 w-10 h-10 rounded-lg flex items-center justify-center text-lg group-hover:bg-teal-100 group-hover:text-teal-600 transition">
+                            <i class="fa-solid ${item.icon}"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="font-bold text-slate-800 text-sm">${item.name}</div>
+                            <div class="text-xs text-slate-500">${item.desc}</div>
+                        </div>
+                    </div>
+                    <div class="text-teal-600 font-bold text-sm group-hover:scale-110 transition">${item.cost} <span class="text-xs">pts</span></div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function filterItems(cat) {
+            // Update button styles
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                if(btn.dataset.filter === cat) {
+                    btn.className = "px-3 py-1 rounded-full text-xs font-bold bg-teal-600 text-white filter-btn";
+                } else {
+                    btn.className = "px-3 py-1 rounded-full text-xs font-bold bg-slate-700 text-slate-300 hover:bg-slate-600 transition filter-btn";
+                }
+            });
+            renderStore(cat);
+        }
+
+        // Initialize Store
+        renderStore();
+
         function depositNets() {
             const input = document.getElementById('net-input');
             const weight = parseFloat(input.value);
@@ -894,7 +1078,7 @@
                 const earned = weight * 15;
                 wallet += earned;
                 document.getElementById('wallet-balance').innerText = wallet.toLocaleString();
-                msg.innerHTML = `<span class="text-green-600 font-bold">Success!</span> +${earned} credits deposited to blockchain ledger.`;
+                msg.innerHTML = `<span class="text-green-600 font-bold">Success!</span> +${earned} credits deposited.`;
                 input.value = '';
             } else {
                 msg.innerHTML = `<span class="text-red-500">Please enter a valid weight.</span>`;
@@ -906,9 +1090,9 @@
             if (wallet >= cost) {
                 wallet -= cost;
                 document.getElementById('wallet-balance').innerText = wallet.toLocaleString();
-                msg.innerHTML = `<span class="text-blue-600 font-bold">Transaction Confirmed!</span> Purchased: ${itemName}.`;
+                msg.innerHTML = `<span class="text-blue-600 font-bold">Purchased!</span> ${itemName} added to inventory.`;
             } else {
-                msg.innerHTML = `<span class="text-red-500 font-bold">Insufficient Funds.</span> Need ${cost - wallet} more credits.`;
+                msg.innerHTML = `<span class="text-red-500 font-bold">Insufficient Funds.</span> Need ${cost - wallet} more pts.`;
             }
         }
 
@@ -917,16 +1101,19 @@
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Year 1 (Pilot)', 'Year 2', 'Year 3 (Target)', 'Year 4', 'Year 5'],
+                labels: ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'],
                 datasets: [
                     {
-                        label: 'Revenue ($M)',
-                        data: [0.8, 1.9, 3.7, 5.5, 7.2],
-                        backgroundColor: 'rgba(17, 202, 160, 0.15)',
-                        borderColor: '#11caa0',
-                        borderWidth: 2,
-                        yAxisID: 'y',
-                        borderRadius: 6
+                        label: 'Nylon Sales (Physical)',
+                        data: [0.6, 1.4, 2.7, 4.0, 5.2], // ~70-75% of revenue
+                        backgroundColor: '#11caa0', // Teal
+                        stack: 'Revenue'
+                    },
+                    {
+                        label: 'Plastic Credits (Digital)',
+                        data: [0.2, 0.5, 1.0, 1.5, 2.0], // ~25-30% of revenue
+                        backgroundColor: '#f59e0b', // Gold/Yellow
+                        stack: 'Revenue'
                     },
                     {
                         label: 'EBITDA Margin (%)',
@@ -937,7 +1124,6 @@
                         pointBackgroundColor: '#ffffff',
                         pointBorderColor: '#2563eb',
                         pointBorderWidth: 2,
-                        pointRadius: 4,
                         yAxisID: 'y1',
                         tension: 0.3
                     }
@@ -956,11 +1142,30 @@
                         backgroundColor: 'rgba(15, 23, 42, 0.9)',
                         padding: 12,
                         titleFont: { size: 14, family: "'Merriweather', serif" },
-                        bodyFont: { size: 13, family: "'DM Sans', sans-serif" }
+                        bodyFont: { size: 13, family: "'DM Sans', sans-serif" },
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.dataset.type === 'line') {
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y + '%';
+                                    }
+                                } else {
+                                    if (context.parsed.y !== null) {
+                                        label += '$' + context.parsed.y + 'M';
+                                    }
+                                }
+                                return label;
+                            }
+                        }
                     }
                 },
                 scales: {
                     y: {
+                        stacked: true, // Enable stacking
                         type: 'linear',
                         display: true,
                         position: 'left',
@@ -975,6 +1180,7 @@
                         title: { display: true, text: 'EBITDA %', font: { size: 12, weight: 'bold' } }
                     },
                     x: {
+                        stacked: true, // Enable stacking
                         grid: { display: false }
                     }
                 }
@@ -1028,3 +1234,4 @@
     </script>
 </body>
 </html>
+
